@@ -179,7 +179,7 @@ cfssl gencert \
 
 
 # Give time for changes to propagate
-sleep 10
+sleep 15
 
 # Distribute certs
 

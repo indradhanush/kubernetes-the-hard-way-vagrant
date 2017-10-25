@@ -4,32 +4,61 @@ set -xeu
 
 # Install worker binaries
 
-sudo apt-get -y install socat
+sudo add-apt-repository ppa:alexlarsson/flatpak
+sudo apt-get update
+
+sudo apt-get -y install socat libgpgme11-dev libostree-dev
 
 wget -q --show-progress --https-only --timestamping \
   https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz \
-  https://github.com/kubernetes-incubator/cri-containerd/releases/download/v1.0.0-alpha.0/cri-containerd-1.0.0-alpha.0.tar.gz \
+  https://github.com/opencontainers/runc/releases/download/v1.0.0-rc4/runc.amd64 \
+  https://storage.googleapis.com/kubernetes-the-hard-way/crio-amd64-v1.0.0-beta.0.tar.gz \
   https://storage.googleapis.com/kubernetes-release/release/v1.8.0/bin/linux/amd64/kubectl \
   https://storage.googleapis.com/kubernetes-release/release/v1.8.0/bin/linux/amd64/kube-proxy \
   https://storage.googleapis.com/kubernetes-release/release/v1.8.0/bin/linux/amd64/kubelet
 
 sudo mkdir -p \
+  /etc/containers \
   /etc/cni/net.d \
   /opt/cni/bin \
+  /etc/crio \
+  /usr/local/libexec/crio \
   /var/lib/kubelet \
   /var/lib/kube-proxy \
   /var/lib/kubernetes \
   /var/run/kubernetes
 
+sudo mv runc.amd64 runc
 
 sudo tar -xvf cni-plugins-amd64-v0.6.0.tgz -C /opt/cni/bin/
 
-sudo tar -xvf cri-containerd-1.0.0-alpha.0.tar.gz -C /
+sudo tar -xf crio-amd64-v1.0.0-beta.0.tar.gz
 
-chmod +x kubectl kube-proxy kubelet
+chmod +x kubectl kube-proxy kubelet runc
 
 sudo mv kubectl kube-proxy kubelet /usr/local/bin/
 
+sudo mv runc crio crioctl kpod /usr/local/bin/
+
+sudo mv conmon pause /usr/local/libexec/crio/
+
+sudo mv crio.conf seccomp.json /etc/crio/
+
+sudo mv policy.json /etc/containers/
+
+cat > crio.service <<EOF
+[Unit]
+Description=CRI-O daemon
+Documentation=https://github.com/kubernetes-incubator/cri-o
+
+[Service]
+ExecStart=/usr/local/bin/crio --stream-address 10.240.0.2${HOSTNAME##worker-}
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # Configure cni networking
 
@@ -75,8 +104,8 @@ cat > kubelet.service <<EOF
 [Unit]
 Description=Kubernetes Kubelet
 Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-After=cri-containerd.service
-Requires=cri-containerd.service
+After=crio.service
+Requires=crio.service
 
 [Service]
 ExecStart=/usr/local/bin/kubelet \\
@@ -87,8 +116,9 @@ ExecStart=/usr/local/bin/kubelet \\
   --cluster-dns=10.32.0.10 \\
   --cluster-domain=cluster.local \\
   --container-runtime=remote \\
-  --container-runtime-endpoint=unix:///var/run/cri-containerd.sock \\
+  --container-runtime-endpoint=unix:///var/run/crio.sock \\
   --image-pull-progress-deadline=2m \\
+  --image-service-endpoint=unix:///var/run/crio.sock \\
   --kubeconfig=/var/lib/kubelet/kubeconfig \\
   --network-plugin=cni \\
   --pod-cidr=${POD_CIDR} \\
@@ -130,10 +160,10 @@ EOF
 
 # Start worker services
 
-sudo mv kubelet.service kube-proxy.service /etc/systemd/system/
+sudo mv crio.service kubelet.service kube-proxy.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
 
-sudo systemctl enable containerd cri-containerd kubelet kube-proxy
+sudo systemctl enable crio kubelet kube-proxy
 
-sudo systemctl start containerd cri-containerd kubelet kube-proxy
+sudo systemctl start crio kubelet kube-proxy
