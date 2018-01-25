@@ -10,7 +10,7 @@ source "${dir}/versions.bash"
 pushd "${dir}/../"
 trap 'popd' EXIT
 
-for i in {0..2}; do
+for i in {0..1}; do
   cat <<EOF | vagrant ssh "controller-${i}" -- sudo bash
 
 cp "/vagrant/tools/etcd-${etcd_version}-linux-amd64/etcd"* /usr/local/bin

@@ -7,7 +7,7 @@ readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "${dir}/../"
 trap 'popd' EXIT
 
-for i in {0..2}; do
+for i in {0..1}; do
   cat <<'EOF' | vagrant ssh "controller-${i}" -- sudo bash
 
 mkdir -p /var/lib/kubernetes

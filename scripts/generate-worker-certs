@@ -7,7 +7,7 @@ readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "${dir}/../certificates"
 trap 'popd' EXIT
 
-for i in {0..2}; do
+for i in {0..1}; do
 	cfssl gencert \
 		-ca=ca.pem \
 		-ca-key=ca-key.pem \

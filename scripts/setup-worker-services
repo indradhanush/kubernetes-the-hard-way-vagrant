@@ -7,7 +7,7 @@ readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "${dir}/../"
 trap 'popd' EXIT
 
-for i in {0..2}; do
+for i in {0..1}; do
   cat <<'EOF' | vagrant ssh "worker-${i}" -- sudo bash
 
 add-apt-repository -y ppa:alexlarsson/flatpak

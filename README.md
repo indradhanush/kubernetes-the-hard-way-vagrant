@@ -185,7 +185,7 @@ kubectl expose deployment nginx --port 80 --type NodePort
 service "nginx" exposed
 
 NODE_PORT=$(kubectl get svc nginx --output=jsonpath='{range .spec.ports[0]}{.nodePort}')
-for i in {0..2}; do curl -sS 192.168.199.2${i}:${NODE_PORT} | awk '/<h1>/{gsub("<[/]*h1>", ""); print $0}'; done
+for i in {0..1}; do curl -sS 192.168.199.2${i}:${NODE_PORT} | awk '/<h1>/{gsub("<[/]*h1>", ""); print $0}'; done
 Welcome to nginx!
 Welcome to nginx!
 Welcome to nginx!

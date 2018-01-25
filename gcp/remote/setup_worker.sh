@@ -4,7 +4,7 @@ set -xeu
 
 # Install worker binaries
 
-sudo add-apt-repository ppa:alexlarsson/flatpak
+sudo add-apt-repository ppa:alexlarsson/flatpak -y
 sudo apt-get update
 
 sudo apt-get -y install socat libgpgme11-dev libostree-dev

@@ -1,8 +1,10 @@
 #!/bin/bash
 
-set -euo pipefail
+set -exuo pipefail
 
 readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo $dir
 
 kubectl config set-cluster kubernetes-the-hard-way \
   --certificate-authority="${dir}/../certificates/ca.pem" \

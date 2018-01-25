@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
       end
   end
 
-  (0..2).each do |n|
+  (0..1).each do |n|
     config.vm.define "controller-#{n}" do |c|
         c.vm.hostname = "controller-#{n}"
         c.vm.network "private_network", ip: "192.168.199.1#{n}"
@@ -29,13 +29,17 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  (0..2).each do |n|
+  (0..1).each do |n|
     config.vm.define "worker-#{n}" do |c|
         c.vm.hostname = "worker-#{n}"
         c.vm.network "private_network", ip: "192.168.199.2#{n}"
 
         c.vm.provision :shell, :path => "scripts/vagrant-setup-routes.bash"
         c.vm.provision :shell, :path => "scripts/vagrant-setup-hosts-file.bash"
+
+        config.vm.provider "virtualbox" do |vb|
+          vb.memory = "768"
+        end
     end
   end
 
